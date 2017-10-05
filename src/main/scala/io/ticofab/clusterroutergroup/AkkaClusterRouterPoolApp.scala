@@ -6,7 +6,7 @@ import com.typesafe.config.ConfigFactory
 
 import scala.concurrent.duration._
 
-object AkkaClusterRouterGroupApp extends App {
+object AkkaClusterRouterPoolApp extends App {
   implicit val as = ActorSystem("akka-cluster-router-group")
   implicit val am = ActorMaterializer()
   implicit val ec = as.dispatcher
@@ -14,20 +14,18 @@ object AkkaClusterRouterGroupApp extends App {
   val roles = ConfigFactory.load().getStringList("akka.cluster.roles")
 
   if (roles.contains("seed")) {
-    val master = as.actorOf(Props[GroupMaster])
+    val master = as.actorOf(Props[PoolMaster])
     as.scheduler.schedule(0.seconds, 1.second, master, "hello")
-  } else {
-    as.actorOf(Props[Worker], "worker")
   }
 
 }
 
-class GroupMaster extends Actor with ClusterGroupRouting {
+class PoolMaster extends Actor with ClusterPoolRouting {
+
   println(s"creating master")
-  override val ac = context
+  override lazy val ac = context
 
   override def receive = {
     case s: String => workerRouter ! s
   }
 }
-
