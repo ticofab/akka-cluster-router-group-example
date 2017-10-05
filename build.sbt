@@ -12,3 +12,8 @@ libraryDependencies ++= {
     "com.typesafe.akka" %% "akka-cluster-tools" % akkaVersion
   )
 }
+
+enablePlugins(JavaAppPackaging)
+enablePlugins(DockerPlugin)
+
+mainClass in Compile := Some("io.ticofab.clusterroutergroup.AkkaClusterRouterGroupApp")
