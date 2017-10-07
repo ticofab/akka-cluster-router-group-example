@@ -1,0 +1,67 @@
+apiVersion: apps/v1beta1
+kind: StatefulSet
+metadata:
+  name: akka-master
+spec:
+  selector:
+    matchLabels:
+      app: akka-example # has to match .spec.template.metadata.labels
+      role: master
+  replicas: 1
+  serviceName: akka
+  template:
+    metadata:
+      labels:
+        app: akka-example
+        role: master
+    spec:
+      terminationGracePeriodSeconds: 3
+      containers:
+      - name: akka-example
+        image: adamsandor83/akka-example
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 2551
+---
+apiVersion: apps/v1beta1
+kind: StatefulSet
+metadata:
+  name: akka-worker
+spec:
+  selector:
+    matchLabels:
+      app: akka-example # has to match .spec.template.metadata.labels
+      role: worker
+  podManagementPolicy: Parallel
+  replicas: 3
+  serviceName: akka
+  template:
+    metadata:
+      labels:
+        app: akka-example
+        role: worker
+    spec:
+      terminationGracePeriodSeconds: 3
+      containers:
+      - name: akka-example
+        image: adamsandor83/akka-example
+        imagePullPolicy: Always
+        env:
+        - name: ROLE
+          value: worker
+        ports:
+        - containerPort: 2551
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: akka
+  labels:
+    app: akka-example
+spec:
+  ports:
+  - port: 2551
+    name: akka
+  clusterIP: None
+  selector:
+    app: akka-example
